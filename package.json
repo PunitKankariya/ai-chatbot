@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "tw-build": "tailwindcss -c ./src/tailwind.config.js -i ./src/styles/index.css -o ./dist/output.css --watch",
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
