@@ -67,66 +67,75 @@ export default function ChatScreenContainer() {
   };
 
   return (
-    <div className="relative z-10 flex flex-col flex-1">
-      <div className="relative z-10 flex-1 overflow-y-auto p-4 space-y-4 h-[calc(100vh-140px)]">
-        {messages.map((message) => (
-          <ChatScreenCard key={message.id} message={message} />
-        ))}
-        <div ref={messagesEndRef} />
+    <div className="relative z-10 flex flex-col h-full">
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {messages.map((message) => (
+            <ChatScreenCard key={message.id} message={message} />
+          ))}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      {/* Input Area */}
-      <div className="relative z-10 p-4 bg-black/20 backdrop-blur-sm border-t border-white/10">
-        <div className="flex items-center gap-3">
-          {/* Mode Selector */}
-          <div className="relative">
+      {/* Input Area - Fixed at bottom */}
+      <div className="relative z-20 px-6 py-6 bg-black/20 backdrop-blur-xl border-t border-white/10">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-3">
+            {/* Mode Selector */}
+            <div className="relative">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="flex items-center gap-2 px-4 py-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 text-white/80 text-sm hover:bg-white/15 transition-colors min-w-[120px]"
+              >
+                {modes.find((m) => m.value === selectedMode)?.label}
+                <ChevronDown className="w-4 h-4" />
+              </button>
+
+              {isDropdownOpen && (
+                <div className="absolute bottom-full mb-2 left-0 bg-gray-900/95 backdrop-blur-xl rounded-xl border border-white/20 overflow-hidden shadow-2xl">
+                  {modes.map((mode) => (
+                    <button
+                      key={mode.value}
+                      onClick={() => {
+                        setSelectedMode(mode.value);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`block w-full px-4 py-3 text-left text-sm transition-colors ${
+                        selectedMode === mode.value
+                          ? "bg-white/20 text-white"
+                          : "text-white/80 hover:bg-white/10"
+                      }`}
+                    >
+                      {mode.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Input Field */}
+            <div className="flex-1 relative">
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Ask anything from your syllabus..."
+                className="w-full px-6 py-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent transition-all"
+              />
+            </div>
+
+            {/* Send Button */}
             <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-2 px-3 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/20 text-white/80 text-sm hover:bg-white/15 transition-colors"
+              onClick={handleSendMessage}
+              disabled={!inputValue.trim()}
+              className="p-3 bg-gradient-to-r from-purple-500 to-violet-500 hover:from-purple-400 hover:to-violet-400 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed rounded-xl transition-all shadow-lg shadow-purple-500/25 group"
             >
-              {modes.find((m) => m.value === selectedMode)?.label}
-              <ChevronDown className="w-4 h-4" />
+              <Send className="w-5 h-5 text-white group-disabled:text-gray-400" />
             </button>
-
-            {isDropdownOpen && (
-              <div className="absolute bottom-full mb-2 left-0 bg-black/80 backdrop-blur-sm rounded-lg border border-white/20 overflow-hidden">
-                {modes.map((mode) => (
-                  <button
-                    key={mode.value}
-                    onClick={() => {
-                      setSelectedMode(mode.value);
-                      setIsDropdownOpen(false);
-                    }}
-                    className="block w-full px-4 py-2 text-left text-white/80 hover:bg-white/10 transition-colors text-sm"
-                  >
-                    {mode.label}
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
-
-          {/* Input Field */}
-          <div className="flex-1 relative">
-            <input
-              ref={inputRef}
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask anything from your syllabus..."
-              className="w-full px-4 py-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
-            />
-          </div>
-
-          {/* Send Button */}
-          <button
-            onClick={handleSendMessage}
-            disabled={!inputValue.trim()}
-            className="p-3 bg-cyan-400 hover:bg-cyan-300 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-xl transition-colors shadow-lg shadow-cyan-400/25"
-          >
-            <Send className="w-5 h-5 text-black" />
-          </button>
         </div>
       </div>
     </div>
