@@ -67,9 +67,9 @@ export default function ChatScreenContainer() {
   };
 
   return (
-    <div className="relative z-10 flex flex-col h-full">
+    <div className="flex flex-col h-full">
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6" style={{height: 'calc(100vh - 160px)'}}>
+      <div className="flex-1 overflow-y-auto px-6 py-6">
         <div className="max-w-4xl mx-auto space-y-6">
           {messages.map((message) => (
             <ChatScreenCard key={message.id} message={message} />
@@ -79,21 +79,21 @@ export default function ChatScreenContainer() {
       </div>
 
       {/* Input Area - Fixed at bottom */}
-      <div className="relative z-20 px-6 py-6 bg-black/30 backdrop-blur-xl border-t border-white/10">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-center gap-4">
+      <div className="relative z-20 px-6 py-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-3 bg-black/20 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/10">
             {/* Mode Selector */}
             <div className="relative">
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className="flex items-center gap-2 px-4 py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 text-white/80 text-sm hover:bg-white/15 transition-all duration-200 min-w-[120px]"
+                className="flex items-center gap-2 px-3 py-2 bg-transparent text-white text-sm hover:bg-white/5 transition-all duration-200 rounded-lg"
               >
                 {modes.find((m) => m.value === selectedMode)?.label}
                 <ChevronDown className="w-4 h-4" />
               </button>
 
               {isDropdownOpen && (
-                <div className="absolute bottom-full mb-2 left-0 bg-black/80 backdrop-blur-xl rounded-2xl border border-white/20 overflow-hidden shadow-2xl">
+                <div className="absolute bottom-full mb-2 left-0 bg-black/80 backdrop-blur-xl rounded-xl border border-white/20 overflow-hidden shadow-2xl min-w-[120px]">
                   {modes.map((mode) => (
                     <button
                       key={mode.value}
@@ -101,7 +101,7 @@ export default function ChatScreenContainer() {
                         setSelectedMode(mode.value);
                         setIsDropdownOpen(false);
                       }}
-                      className={`block w-full px-4 py-3 text-left text-sm transition-colors ${
+                      className={`block w-full px-4 py-2.5 text-left text-sm transition-colors ${
                         selectedMode === mode.value
                           ? "bg-white/20 text-white"
                           : "text-white/80 hover:bg-white/10"
@@ -123,7 +123,7 @@ export default function ChatScreenContainer() {
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Ask anything from your syllabus..."
-                className="w-full px-6 py-3 bg-white/10 backdrop-blur-sm rounded-full border border-white/20 text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:border-transparent transition-all"
+                className="w-full px-4 py-2 bg-transparent text-white placeholder-white/60 focus:outline-none text-sm border-none"
               />
             </div>
 
@@ -131,9 +131,9 @@ export default function ChatScreenContainer() {
             <button
               onClick={handleSendMessage}
               disabled={!inputValue.trim()}
-              className="p-3 bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed rounded-full transition-all duration-200 shadow-lg shadow-cyan-400/30 hover:shadow-cyan-400/50 hover:scale-105 group"
+              className="p-2 bg-blue-500/80 hover:bg-blue-500 disabled:bg-gray-600/50 disabled:cursor-not-allowed rounded-xl transition-all duration-200 hover:scale-105 group"
             >
-              <Send className="w-5 h-5 text-white group-disabled:text-gray-400" />
+              <Send className="w-4 h-4 text-white group-disabled:text-gray-400" />
             </button>
           </div>
         </div>

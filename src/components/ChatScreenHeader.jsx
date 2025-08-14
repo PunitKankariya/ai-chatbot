@@ -1,15 +1,18 @@
+import { User } from "lucide-react";
+
 export default function ChatScreenHeader() {
   return (
-    <div 
-      className="relative z-50 flex items-center justify-between px-6 py-5 border-b border-white/10" 
-      style={{backgroundColor: '#16213e', boxShadow: '0 2px 10px rgba(0,0,0,0.3)'}}
-    >
-      <h1 className="text-2xl font-bold text-white drop-shadow-lg">
-        StudyMate AI
-      </h1>
-      <div className="w-12 h-12 bg-gray-600 rounded-full flex items-center justify-center hover:bg-gray-500 transition-all duration-200 cursor-pointer shadow-xl border-2 border-gray-500">
-        <span className="text-white font-bold text-lg">A</span>
+    <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4" style={{background: 'linear-gradient(135deg, rgba(45, 27, 105, 0.95) 0%, rgba(76, 29, 149, 0.95) 50%, rgba(124, 58, 237, 0.95) 100%)', backdropFilter: 'blur(12px)'}}>
+      <div className="bg-black/20 backdrop-blur-sm rounded-xl px-4 py-2">
+        <h1 className="text-xl font-semibold text-white">
+          StudyMate AI
+        </h1>
       </div>
-    </div>
+      <div className="flex items-center pr-4">
+        <button className="w-10 h-10 bg-black/20 backdrop-blur-sm hover:bg-black/30 rounded-xl flex items-center justify-center transition-all duration-200">
+          <User className="w-5 h-5 text-white/80" />
+        </button>
+      </div>
+    </header>
   );
 }
