@@ -81,7 +81,7 @@ export default function ChatScreenContainer() {
       {/* Input Area - Fixed at bottom */}
       <div className="relative z-20 px-6 py-6">
         <div className="max-w-4xl mx-auto">
-          <div className="flex items-center gap-3 bg-black/20 backdrop-blur-sm rounded-2xl px-4 py-3 border border-white/10">
+          <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3">
             {/* Mode Selector */}
             <div className="relative">
               <button
@@ -93,7 +93,7 @@ export default function ChatScreenContainer() {
               </button>
 
               {isDropdownOpen && (
-                <div className="absolute bottom-full mb-2 left-0 bg-black/80 backdrop-blur-xl rounded-xl border border-white/20 overflow-hidden shadow-2xl min-w-[120px]">
+                <div className="absolute bottom-full mb-2 left-0 bg-black/80 backdrop-blur-xl rounded-xl overflow-hidden shadow-2xl min-w-[120px]">
                   {modes.map((mode) => (
                     <button
                       key={mode.value}
@@ -131,7 +131,7 @@ export default function ChatScreenContainer() {
             <button
               onClick={handleSendMessage}
               disabled={!inputValue.trim()}
-              className="p-2 bg-blue-500/80 hover:bg-blue-500 disabled:bg-gray-600/50 disabled:cursor-not-allowed rounded-xl transition-all duration-200 hover:scale-105 group"
+              className="p-2.5 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600/50 disabled:cursor-not-allowed rounded-full transition-all duration-200 hover:scale-105 group"
             >
               <Send className="w-4 h-4 text-white group-disabled:text-gray-400" />
             </button>
