@@ -1,5 +1,6 @@
 import ChatScreenHeader from "../components/chatScreenHeader";
 import ChatScreenContainer from "../components/ChatScreenContainer";
+import StudentProfile from "./StudentProfile";
 
 export default function ChatScreenView() {
   return (
