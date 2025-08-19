@@ -1,20 +1,24 @@
 import express from "express";
+import dotenv from "dotenv";
 import cors from "cors";
 import chatRoutes from "./routes/chatRoutes.js";
-import errorHandler from "./middleware/errorHandler.js";
-import dotenv from "dotenv";
+
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+// Middleware
+app.use(cors());          // ✅ Fix CORS issues for frontend
 app.use(express.json());
 
-// API routes
-app.use("/chat", chatRoutes);
+// Routes
+app.use("/api", chatRoutes);
 
-// central error handler
-app.use(errorHandler);
+app.get("/", (req, res) => {
+  res.send("Backend is running 🚀");
+});
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Server running at http://localhost:${PORT}`);
+});

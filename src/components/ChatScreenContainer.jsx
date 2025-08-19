@@ -33,30 +33,68 @@ export default function ChatScreenContainer() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
 
-    const newMessage = {
+    const currentInput = inputValue;
+
+    // Add user message immediately
+    const userMessage = {
       id: Date.now().toString(),
-      content: inputValue,
+      content: currentInput,
       isUser: true,
       timestamp: new Date(),
     };
-
-    setMessages((prev) => [...prev, newMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
 
-    setTimeout(() => {
-      const aiResponse = {
-        id: (Date.now() + 1).toString(),
-        content: `I understand you're asking about "${inputValue}". Let me help you with that in ${
-          modes.find((m) => m.value === selectedMode)?.label
-        } mode.`,
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiResponse]);
-    }, 1000);
+    // Add loading placeholder
+    const loadingMessage = {
+      id: "loading",
+      content: "Thinking...",
+      isUser: false,
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, loadingMessage]);
+
+    try {
+      // Prepare history for backend
+      const history = messages.map((m) => ({
+        role: m.isUser ? "user" : "assistant",
+        content: m.content,
+      }));
+
+      const res = await fetch("http://localhost:5001/chat/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: currentInput, history }),
+      });
+
+      if (!res.ok) throw new Error(`Backend error: ${res.status}`);
+      const data = await res.json();
+
+      // Replace loading with AI reply
+      setMessages((prev) => [
+        ...prev.filter((m) => m.id !== "loading"),
+        {
+          id: (Date.now() + 1).toString(),
+          content: data.reply || "(No reply)",
+          isUser: false,
+          timestamp: new Date(),
+        },
+      ]);
+    } catch (err) {
+      console.error("Chat API Error:", err);
+      setMessages((prev) => [
+        ...prev.filter((m) => m.id !== "loading"),
+        {
+          id: (Date.now() + 2).toString(),
+          content: "Sorry, the server failed to respond. Please try again.",
+          isUser: false,
+          timestamp: new Date(),
+        },
+      ]);
+    }
   };
 
   const handleKeyPress = (e) => {

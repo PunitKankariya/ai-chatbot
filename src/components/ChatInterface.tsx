@@ -29,30 +29,76 @@ export default function StudyMateAI() {
   const [inputValue, setInputValue] = useState("")
   const [mode, setMode] = useState("detailed")
 
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return;
 
-    const newMessage: Message = {
+    // Add user message to chat
+    const userMessage: Message = {
       id: Date.now().toString(),
       content: inputValue,
       isUser: true,
       timestamp: new Date(),
-    }
+    };
 
-    setMessages((prev) => [...prev, newMessage])
-    setInputValue("")
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
 
-    // Simulate AI response
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "I understand your question. Let me help you with that topic from your syllabus.",
-        isUser: false,
-        timestamp: new Date(),
+    // Add loading message
+    const loadingMessage: Message = {
+      id: "loading",
+      content: "Thinking...",
+      isUser: false,
+      timestamp: new Date(),
+    };
+    
+    setMessages((prev) => [...prev, loadingMessage]);
+
+    try {
+      // Call your backend API
+      const response = await fetch('http://localhost:5001/chat/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: inputValue,
+          history: messages.map(msg => ({
+            role: msg.isUser ? 'user' : 'assistant',
+            content: msg.content
+          }))
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
-      setMessages((prev) => [...prev, aiResponse])
-    }, 1000)
-  }
+
+      const data = await response.json();
+
+      // Remove loading message and add AI response
+      setMessages(prev => [
+        ...prev.filter(msg => msg.id !== 'loading'),
+        {
+          id: Date.now().toString(),
+          content: data.reply,
+          isUser: false,
+          timestamp: new Date(),
+        },
+      ]);
+    } catch (error) {
+      console.error('Error:', error);
+      // Update loading message to show error
+      setMessages(prev => [
+        ...prev.filter(msg => msg.id !== 'loading'),
+        {
+          id: Date.now().toString(),
+          content: 'Sorry, I encountered an error. Please try again later.',
+          isUser: false,
+          timestamp: new Date(),
+        },
+      ]);
+    }
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
