@@ -1,0 +1,31 @@
+// src/App.jsx
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import ChatPage from "./pages/ChatPage";
+import NotesPage from "./pages/NotesPage";
+import QuizzesPage from "./pages/QuizzesPage";
+import ProgressPage from "./pages/ProgressPage.jsx";
+import SettingsPage from "./pages/SettingsPage";
+import StudentProfile from "./pages/StudentProfile.jsx";
+
+function App() {
+  return (
+    <Router>
+      <div className="w-full h-screen overflow-hidden">
+        <Routes>
+          {/* Redirect root to /chat */}
+          <Route path="/" element={<Navigate to="/chat" replace />} />
+
+          {/* Pages */}
+          <Route path="/chat" element={<ChatPage />} />
+          <Route path="/notes" element={<NotesPage />} />
+          <Route path="/quizzes" element={<QuizzesPage />} />
+          <Route path="/progress" element={<ProgressPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/profile" element={<StudentProfile />} />
+        </Routes>
+      </div>
+    </Router>
+  );
+}
+
+export default App;
