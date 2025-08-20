@@ -10,6 +10,7 @@ export default function AppLayout({ children }) {
     { name: "Quizzes", path: "/quizzes", icon: "📝" },
     { name: "Progress", path: "/progress", icon: "📊" },
     { name: "Settings", path: "/settings", icon: "⚙️" },
+    { name: "Profile", path: "/profile", icon: "👤" },
   ];
 
   return (

@@ -8,16 +8,13 @@
 //     <App />
 //   </StrictMode>,
 // )
-import React from 'react' 
+import React from 'react'
 import ReactDOM from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import ChatScreenView from './pages/ChatScreenView.jsx'
-import './index.css' // ✅ Import Tailwind here
+import './index.css'
+import App from './App.jsx'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
-      <ChatScreenView />
-    </BrowserRouter>
+    <App />
   </React.StrictMode>,
 )

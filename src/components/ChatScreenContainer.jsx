@@ -1,4 +1,4 @@
-import { Send, ChevronDown } from "lucide-react";
+import { Send, ChevronDown, Mic, Camera, FileUp, Plus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import ChatScreenCard from "./ChatScreenCard";
 
@@ -24,6 +24,10 @@ export default function ChatScreenContainer() {
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const pdfInputRef = useRef(null);
+  const imageInputRef = useRef(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -104,6 +108,52 @@ export default function ChatScreenContainer() {
     }
   };
 
+  const handlePdfSelected = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        content: `Uploaded PDF: ${file.name}`,
+        isUser: true,
+        timestamp: new Date(),
+      },
+    ]);
+    e.target.value = "";
+  };
+
+  const handleImageSelected = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: Date.now().toString(),
+        content: `Captured image: ${file.name}`,
+        isUser: true,
+        timestamp: new Date(),
+      },
+    ]);
+    e.target.value = "";
+  };
+
+  const toggleRecording = () => {
+    setIsRecording((prev) => {
+      const next = !prev;
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          id: Date.now().toString(),
+          content: next ? "Voice input started" : "Voice input stopped",
+          isUser: true,
+          timestamp: new Date(),
+        },
+      ]);
+      return next;
+    });
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Messages Area */}
@@ -150,6 +200,80 @@ export default function ChatScreenContainer() {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* Actions: Single Add button (PDF/Image) + Mic */}
+            <div className="flex items-center gap-2 relative">
+              {/* Hidden inputs */}
+              <input
+                ref={pdfInputRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={(e) => {
+                  handlePdfSelected(e);
+                  setIsAddMenuOpen(false);
+                }}
+              />
+              <input
+                ref={imageInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={(e) => {
+                  handleImageSelected(e);
+                  setIsAddMenuOpen(false);
+                }}
+              />
+
+              {/* Add button with small menu */}
+              <button
+                type="button"
+                onClick={() => setIsAddMenuOpen((o) => !o)}
+                title="Add"
+                aria-expanded={isAddMenuOpen}
+                aria-haspopup="menu"
+                aria-label="Add"
+                className="p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition-all duration-200 hover:scale-105"
+              >
+                <Plus className="w-4 h-4 text-white" />
+              </button>
+
+              {isAddMenuOpen && (
+                <div className="absolute bottom-full mb-2 left-0 bg-black/80 backdrop-blur-xl rounded-xl overflow-hidden shadow-2xl min-w-[160px]">
+                  <button
+                    type="button"
+                    onClick={() => pdfInputRef.current?.click()}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm text-white/90 hover:bg-white/10"
+                  >
+                    <FileUp className="w-4 h-4" /> Upload PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => imageInputRef.current?.click()}
+                    className="w-full flex items-center gap-2 px-4 py-2.5 text-left text-sm text-white/90 hover:bg-white/10"
+                  >
+                    <Camera className="w-4 h-4" /> Capture Image
+                  </button>
+                </div>
+              )}
+
+              {/* Mic */}
+              <button
+                type="button"
+                onClick={toggleRecording}
+                title="Mic"
+                aria-pressed={isRecording}
+                aria-label="Mic"
+                className={`p-2.5 rounded-full transition-all duration-200 hover:scale-105 ${
+                  isRecording
+                    ? "bg-red-500 hover:bg-red-600"
+                    : "bg-white/10 hover:bg-white/20"
+                }`}
+              >
+                <Mic className="w-4 h-4 text-white" />
+              </button>
             </div>
 
             {/* Input Field */}

@@ -6,6 +6,7 @@ import QuizzesPage from "./pages/QuizzesPage";
 import ProgressPage from "./pages/ProgressPage.jsx";
 import SettingsPage from "./pages/SettingsPage";
 import StudentProfile from "./pages/StudentProfile.jsx";
+import LoginPage from "./pages/LoginPage.jsx";
 
 function App() {
   return (
@@ -21,7 +22,8 @@ function App() {
           <Route path="/quizzes" element={<QuizzesPage />} />
           <Route path="/progress" element={<ProgressPage />} />
           <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/profile" element={<StudentProfile />} />
+          <Route path="/profile" element={<StudentProfile />} />
+          <Route path="/login" element={<LoginPage />} />
         </Routes>
       </div>
     </Router>
