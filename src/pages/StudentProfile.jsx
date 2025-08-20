@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import AppLayout from "../components/ui/AppLayout";
 import { ArrowLeft, MessageCircle, BookOpen, Award, Brain } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -30,6 +30,20 @@ export default function StudentProfile() {
   const [isEditing, setIsEditing] = useState(false);
   const imageInputRef = useRef(null);
 
+  // Load saved profile from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("user_profile");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setProfile(parsed);
+        setDraft(parsed);
+      }
+    } catch (_) {
+      // ignore parse errors
+    }
+  }, []);
+
   const startEditing = () => {
     setDraft(profile);
     setIsEditing(true);
@@ -42,6 +56,11 @@ export default function StudentProfile() {
 
   const saveEditing = () => {
     setProfile(draft);
+    try {
+      localStorage.setItem("user_profile", JSON.stringify(draft));
+    } catch (_) {
+      // ignore
+    }
     setIsEditing(false);
   };
 
@@ -116,18 +135,41 @@ export default function StudentProfile() {
         {/* Profile Info */}
         <div className="flex flex-col items-center mt-6">
           <div className="relative">
-            <img
-              src={isEditing ? draft.profileImage : profile.profileImage}
-              alt={isEditing ? draft.name : profile.name}
-              className="w-28 h-28 rounded-full border-4 border-purple-400 shadow-lg object-cover"
-            />
+            <div className="p-1 rounded-full bg-gradient-to-tr from-purple-500 via-pink-500 to-amber-400">
+              <div className="rounded-full bg-slate-900 p-1">
+                {(isEditing ? draft.profileImage : profile.profileImage) ? (
+                  <img
+                    src={isEditing ? draft.profileImage : profile.profileImage}
+                    alt={isEditing ? draft.name : profile.name}
+                    className="w-28 h-28 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="w-28 h-28 rounded-full bg-white/10 flex items-center justify-center text-3xl font-semibold">
+                    {(isEditing ? draft.name : profile.name)
+                      .split(" ")
+                      .map((p) => p[0])
+                      .slice(0, 2)
+                      .join("")}
+                  </div>
+                )}
+              </div>
+            </div>
+
             {isEditing && (
-              <button
-                onClick={() => imageInputRef.current?.click()}
-                className="absolute -bottom-2 right-0 px-2 py-1 text-xs rounded-md bg-white/20 hover:bg-white/30"
-              >
-                Change
-              </button>
+              <div className="absolute -bottom-3 right-0 flex gap-2">
+                <button
+                  onClick={() => imageInputRef.current?.click()}
+                  className="px-2 py-1 text-xs rounded-md bg-white/20 hover:bg-white/30"
+                >
+                  Change
+                </button>
+                <button
+                  onClick={() => setDraft((p) => ({ ...p, profileImage: "" }))}
+                  className="px-2 py-1 text-xs rounded-md bg-red-500/80 hover:bg-red-600"
+                >
+                  Remove
+                </button>
+              </div>
             )}
             <input
               ref={imageInputRef}
@@ -208,27 +250,38 @@ export default function StudentProfile() {
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mt-8 px-6">
-          <div className="bg-purple-800/40 p-4 rounded-xl flex flex-col items-center">
-            <BookOpen className="w-6 h-6 text-purple-300" />
-            <p className="mt-2 text-lg font-bold">
-              {profile.stats.notesAccessed}
-            </p>
-            <p className="text-sm text-purple-300">Notes</p>
-          </div>
-          <div className="bg-purple-800/40 p-4 rounded-xl flex flex-col items-center">
-            <MessageCircle className="w-6 h-6 text-purple-300" />
-            <p className="mt-2 text-lg font-bold">
-              {profile.stats.questionsAsked}
-            </p>
-            <p className="text-sm text-purple-300">Questions</p>
-          </div>
-          <div className="bg-purple-800/40 p-4 rounded-xl flex flex-col items-center">
-            <Award className="w-6 h-6 text-purple-300" />
-            <p className="mt-2 text-lg font-bold">
-              {profile.stats.quizzesAttempted}
-            </p>
-            <p className="text-sm text-purple-300">Quizzes</p>
-          </div>
+          {[
+            { icon: BookOpen, label: "Notes", key: "notesAccessed" },
+            { icon: MessageCircle, label: "Questions", key: "questionsAsked" },
+            { icon: Award, label: "Quizzes", key: "quizzesAttempted" },
+          ].map(({ icon: Icon, label, key }) => (
+            <div
+              key={key}
+              className="bg-purple-800/40 p-4 rounded-xl flex flex-col items-center"
+            >
+              <Icon className="w-6 h-6 text-purple-300" />
+              {isEditing ? (
+                <input
+                  type="number"
+                  min="0"
+                  value={draft.stats[key]}
+                  onChange={(e) =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      stats: {
+                        ...prev.stats,
+                        [key]: Number(e.target.value) || 0,
+                      },
+                    }))
+                  }
+                  className="mt-2 text-lg font-bold text-center w-24 rounded bg-white/10"
+                />
+              ) : (
+                <p className="mt-2 text-lg font-bold">{profile.stats[key]}</p>
+              )}
+              <p className="text-sm text-purple-300">{label}</p>
+            </div>
+          ))}
         </div>
 
         {/* Focus Areas */}
