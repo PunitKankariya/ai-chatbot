@@ -5,6 +5,10 @@
 
 import os
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -22,32 +26,33 @@ def initialize_rag():
         return True
         
     try:
-        # Try to import required modules
+        # Imports
         from langchain_pinecone import PineconeVectorStore
         from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
         from langchain_community.document_loaders import PyPDFLoader
         from langchain.text_splitter import RecursiveCharacterTextSplitter
         from langchain_core.output_parsers import StrOutputParser
-        from langchain_core.runnables import RunnablePassthrough
+        from langchain_core.runnables import RunnablePassthrough, RunnableLambda
         from langchain_core.prompts import ChatPromptTemplate
         from pinecone import Pinecone
         
         logger.info("Successfully imported all required modules")
         
-        # Check if required environment variables are set
+        # Check API keys
         google_api_key = os.environ.get("GOOGLE_API_KEY")
         pinecone_api_key = os.environ.get("PINECONE_API_KEY")
         
-        if not google_api_key or google_api_key == "YOUR_GOOGLE_API_KEY":
-            logger.warning("GOOGLE_API_KEY not set or using placeholder value")
+        if not google_api_key:
+            logger.warning("GOOGLE_API_KEY not set")
             return False
             
-        if not pinecone_api_key or pinecone_api_key == "YOUR_PINECONE_API_KEY":
-            logger.warning("PINECONE_API_KEY not set or using placeholder value")
+        if not pinecone_api_key:
+            logger.warning("PINECONE_API_KEY not set")
             return False
         
-        # Check if PDF file exists
-        pdf_path = "bio1.pdf"
+        # PDF path (relative to project root)
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        pdf_path = os.path.join(repo_root, "bio1.pdf")
         if not os.path.exists(pdf_path):
             logger.warning(f"PDF file {pdf_path} not found")
             return False
@@ -62,26 +67,35 @@ def initialize_rag():
         splits = text_splitter.split_documents(docs)
         logger.info(f"Split into {len(splits)} chunks")
         
-        # Google Embeddings
+        # Embeddings
         embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
         
         # Pinecone setup
         pc = Pinecone(api_key=pinecone_api_key)
         index_name = "ai-bot-1"
         
-        vector_store = PineconeVectorStore.from_documents(docs, embeddings, index_name=index_name)
+        # Store vectors
+        vector_store = PineconeVectorStore.from_documents(splits, embeddings, index_name=index_name)
         
         # Retriever
-        retriever = vector_store.as_retriever()
+        retriever = vector_store.as_retriever(search_kwargs={"k": 7})
+
+        # Utility: format docs into single context string
+        def format_docs(docs):
+            return "\n\n".join(d.page_content for d in docs)
         
         # Prompt
         template = """
+        You are a helpful assistant. Use ONLY the provided Context to answer the Question.
+        If the answer is not explicitly present in the Context, reply exactly with: I don't know.
+        Be concise and cite facts from the Context.
+
         Context:
         {context}
-        
+
         Question:
         {question}
-        
+
         Answer:
         """
         prompt = ChatPromptTemplate.from_template(template)
@@ -91,7 +105,10 @@ def initialize_rag():
         
         # RAG Chain
         rag_chain = (
-            {"context": retriever, "question": RunnablePassthrough()}
+            {
+                "context": retriever | RunnableLambda(format_docs),
+                "question": RunnablePassthrough(),
+            }
             | prompt
             | llm
             | StrOutputParser()
@@ -126,7 +143,7 @@ def generate_response(query: str) -> str:
         logger.error(f"Error generating response: {e}")
         return f"Error: {e}"
 
-# Try to initialize on import
+# Try auto-initialize on import
 try:
     initialize_rag()
 except Exception as e:
