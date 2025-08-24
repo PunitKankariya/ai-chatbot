@@ -1,8 +1,31 @@
 import axios from "axios";
 
 // Support both env var names
-const RAG_API_URL = process.env.RAG_API_URL || "http://localhost:8000/generate";
+const RAG_API_URL = process.env.RAG_API_URL || "http://127.0.0.1:8000/generate";
 let model = null;
+
+/**
+ * Ensure response is properly formatted with bullet points
+ * @param {string} response - AI response text
+ * @returns {string} - Formatted response with bullet points
+ */
+function formatBulletPoints(response) {
+  if (!response) return response;
+  
+  // If already has bullet points, return as is
+  if (response.includes("- ") || response.includes("• ")) {
+    return response;
+  }
+  
+  // Split by sentences and convert to bullet points
+  const sentences = response.split(/[.!?]+/).filter(sentence => sentence.trim().length > 10);
+  if (sentences.length > 1) {
+    return sentences.map(sentence => `- ${sentence.trim()}`).join('\n');
+  }
+  
+  // If only one sentence or short text, return as is
+  return response;
+}
 
 /**
  * Get AI response from either Gemini or RAG
@@ -22,7 +45,8 @@ export async function getAIResponse(message, history = [], useRag = false) {
         const response = await axios.post(RAG_API_URL, {
           question: message,
         });
-        return response.data?.response || response.data?.answer || response.data;
+        const ragResponse = response.data?.response || response.data?.answer || response.data;
+        return formatBulletPoints(ragResponse);
       } catch (ragError) {
         if (ragError.code === 'ECONNREFUSED') {
           console.error(`[aiService] RAG API connection refused at ${RAG_API_URL}. Is the RAG server running?`);
@@ -30,29 +54,42 @@ export async function getAIResponse(message, history = [], useRag = false) {
           console.error('[aiService] Error calling RAG API:', ragError.message);
         }
         // Fallback instead of throwing to avoid 500s
-        return `You said: ${message}`;
+        return formatBulletPoints(`You said: ${message}`);
       }
     }
 
     // 🔹 Default: Gemini (graceful fallback if not configured)
-    if (!geminiApiKey) {
-      console.warn("[aiService] Gemini API key not configured. Responding with fallback echo.");
-      return `You said: ${message}`;
-    }
+          if (!geminiApiKey) {
+        console.warn("[aiService] Gemini API key not configured. Responding with fallback echo.");
+        return formatBulletPoints(`You said: ${message}`);
+      }
 
     // Lazy-load Gemini SDK and initialize model if needed
     if (!model) {
       try {
-w
+        console.log("[aiService] Initializing Gemini model...");
         const { GoogleGenerativeAI } = await import("@google/generative-ai");
         const genAI = new GoogleGenerativeAI(geminiApiKey);
-        model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        
+        // Initialize the model with the correct name
+        try {
+          model = genAI.getGenerativeModel({ 
+            model: "gemini-1.5-flash",
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 1000,
+            },
+          });
+          console.log("[aiService] Successfully initialized Gemini model: gemini-1.5-flash");
+        } catch (modelError) {
+          console.error("[aiService] Failed to initialize model:", modelError.message);
+          throw modelError; // Re-throw to be caught by outer catch
+        }
       } catch (sdkError) {
         console.warn("[aiService] Failed to load @google/generative-ai. Falling back to echo.", sdkError?.message);
-        return `You said: ${message}`;
+        return formatBulletPoints(`You said: ${message}`);
       }
     }
-    console.log("[aiService] Using Gemini model: gemini-1.5-flash");
     const cleanHistory = (history) => {
       if (!history || history.length === 0) return [];
 
@@ -95,8 +132,25 @@ w
       },
     });
 
-    const result = await chat.sendMessage(message);
-    return result.response.text();
+    // Add detailed bullet point formatting instruction for non-RAG responses
+    const formattedMessage = `Please provide a clear and concise response to the following query. 
+    Format your response using bullet points (start each point with '- '). 
+    Keep each point brief and focused on a single idea. 
+    Ensure there is a blank line between each bullet point for better readability.
+    
+    Query: ${message}`;
+
+    try {
+      const result = await chat.sendMessage(formattedMessage);
+      const geminiResponse = result.response.text();
+      return formatBulletPoints(geminiResponse);
+    } catch (error) {
+      if (error.message.includes('429') || error.message.includes('quota')) {
+        console.warn('[aiService] Quota exceeded, falling back to echo response');
+        return formatBulletPoints("I'm currently experiencing high demand. Please try again later or check your API quota.\n\nYou asked: " + message);
+      }
+      throw error; // Re-throw other errors to be caught by the outer catch
+    }
 
   } catch (error) {
     console.error('[aiService] Error details:', {
@@ -111,6 +165,6 @@ w
       }
     });
     // Final safety net: never throw to the controller; return fallback
-    return `You said: ${message}`;
+    return formatBulletPoints(`You said: ${message}`);
   }
-}
+} 

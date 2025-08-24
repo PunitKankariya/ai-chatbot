@@ -2,7 +2,7 @@ import os
 import sys
 
 # Set environment variables
-os.environ['GOOGLE_API_KEY'] = 'Q5JB1ZtAYlYYn7gJ6ksKu8rxhGSlxo'
+os.environ['GOOGLE_API_KEY'] = 'AIzaSyCgwe98nUaur-VXbzH07fP2x64rdQt1Dgk'
 os.environ['PINECONE_API_KEY'] = 'pcsk_4QGydV_91VWULgA2LCQh9L1bmyK9oCo2Hr6p23fbT7ZvSL2uSCKqCtK5YJ11JywA9isL2d'
 
 # Import and test RAG

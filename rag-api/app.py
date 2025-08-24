@@ -5,8 +5,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-# Use the working simple RAG implementation
-from simple_working_rag import generate_simple_response
+# Use the advanced RAG implementation with proper formatting
+from rag_model import generate_response
 
 
 class Message(BaseModel):
@@ -47,8 +47,8 @@ def root():
 
 @app.post("/ask")
 def ask(body: AskRequest):
-    # Use the simple RAG implementation
-    answer = generate_simple_response(body.question)
+    # Use the advanced RAG implementation with proper formatting
+    answer = generate_response(body.question)
     return {"answer": answer}
 
 

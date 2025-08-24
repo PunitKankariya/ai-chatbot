@@ -26,7 +26,7 @@ def initialize_rag():
         return True
         
     try:
-        # Imports
+        # Try to import required modules
         from langchain_pinecone import PineconeVectorStore
         from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
         from langchain_community.document_loaders import PyPDFLoader
@@ -38,19 +38,19 @@ def initialize_rag():
         
         logger.info("Successfully imported all required modules")
         
-        # Check API keys
+        # Check if required environment variables are set
         google_api_key = os.environ.get("GOOGLE_API_KEY")
         pinecone_api_key = os.environ.get("PINECONE_API_KEY")
         
-        if not google_api_key:
-            logger.warning("GOOGLE_API_KEY not set")
+        if not google_api_key or google_api_key == "YOUR_GOOGLE_API_KEY":
+            logger.warning("GOOGLE_API_KEY not set or using placeholder value")
             return False
             
-        if not pinecone_api_key:
-            logger.warning("PINECONE_API_KEY not set")
+        if not pinecone_api_key or pinecone_api_key == "YOUR_PINECONE_API_KEY":
+            logger.warning("PINECONE_API_KEY not set or using placeholder value")
             return False
         
-        # PDF path (relative to project root)
+        # Check if PDF file exists (resolve relative to repo root)
         repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         pdf_path = os.path.join(repo_root, "bio1.pdf")
         if not os.path.exists(pdf_path):
@@ -67,20 +67,20 @@ def initialize_rag():
         splits = text_splitter.split_documents(docs)
         logger.info(f"Split into {len(splits)} chunks")
         
-        # Embeddings
+        # Google Embeddings
         embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
         
         # Pinecone setup
         pc = Pinecone(api_key=pinecone_api_key)
         index_name = "ai-bot-1"
         
-        # Store vectors
+        # Index the split chunks (not the whole documents)
         vector_store = PineconeVectorStore.from_documents(splits, embeddings, index_name=index_name)
         
-        # Retriever
+        # Retriever (top-k similar chunks)
         retriever = vector_store.as_retriever(search_kwargs={"k": 7})
 
-        # Utility: format docs into single context string
+        # Utility to turn retrieved docs into a single context string
         def format_docs(docs):
             return "\n\n".join(d.page_content for d in docs)
         
@@ -143,7 +143,7 @@ def generate_response(query: str) -> str:
         logger.error(f"Error generating response: {e}")
         return f"Error: {e}"
 
-# Try auto-initialize on import
+# Try to initialize on import
 try:
     initialize_rag()
 except Exception as e:

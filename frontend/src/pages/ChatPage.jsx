@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { sendMessage } from "../lib/api";
+import ChatBubble from "../components/ChatBubble";
 
 function ChatPage() {
   const [input, setInput] = useState("");
@@ -20,9 +21,17 @@ function ChatPage() {
 
       <div className="border p-3 mb-3 h-64 overflow-y-auto">
         {messages.map((m, i) => (
-          <div key={i} className="mb-2">
-            <p><b>You:</b> {m.user}</p>
-            <p><b>Bot:</b> {m.bot}</p>
+          <div key={i} className="space-y-2">
+            <ChatBubble
+              text={m.user}
+              sender="user"
+              time={new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            />
+            <ChatBubble
+              text={m.bot}
+              sender="ai"
+              time={new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            />
           </div>
         ))}
       </div>

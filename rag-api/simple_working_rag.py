@@ -60,9 +60,19 @@ def generate_simple_response(query: str) -> str:
     if relevant_content == "I couldn't find specific information about that in the document.":
         return relevant_content
     
-    # Format the response
-    response = f"Based on the document, here's what I found:\n\n{relevant_content}"
-    return response
+    # Split content into sentences and format as bullet points
+    sentences = re.split(r'[.!?]+', relevant_content)
+    bullet_points = []
+    
+    for sentence in sentences:
+        sentence = sentence.strip()
+        if sentence and len(sentence) > 10:  # Only include meaningful sentences
+            bullet_points.append(f"- {sentence}")
+    
+    if bullet_points:
+        return "\n".join(bullet_points)
+    else:
+        return "I couldn't find specific information about that in the document."
 
 if __name__ == "__main__":
     # Test the simple RAG
