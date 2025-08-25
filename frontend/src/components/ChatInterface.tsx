@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Send, User } from "lucide-react"
+import ChatBubble from "./ChatBubble"
 
 interface Message {
   id: string
@@ -64,7 +65,7 @@ export default function StudyMateAI() {
       console.error("Error talking to backend:", error)
       const errorMsg: Message = {
         id: (Date.now() + 2).toString(),
-        content: "⚠️ Could not connect to StudyMate AI backend.",
+        content: "⚠ Could not connect to StudyMate AI backend.",
         isUser: false,
         timestamp: new Date(),
       }
@@ -100,17 +101,12 @@ export default function StudyMateAI() {
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4 relative z-10">
         {messages.map((message) => (
-          <div key={message.id} className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}>
-            <div
-              className={`max-w-xs lg:max-w-md px-4 py-3 rounded-2xl ${
-                message.isUser
-                  ? "bg-[#8b5cf6] text-white ml-auto"
-                  : "bg-white/10 backdrop-blur-sm text-gray-200 mr-auto border border-white/20"
-              }`}
-            >
-              <p className="text-sm leading-relaxed">{message.content}</p>
-            </div>
-          </div>
+          <ChatBubble
+            key={message.id}
+            text={message.content}
+            sender={message.isUser ? "user" : "ai"}
+            time={message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          />
         ))}
       </div>
 

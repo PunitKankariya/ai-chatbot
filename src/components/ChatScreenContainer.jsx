@@ -3,9 +3,10 @@ import { useState, useRef, useEffect } from "react";
 import ChatScreenCard from "./ChatScreenCard";
 
 const modes = [
-  { value: "eli5", label: "ELI5" },
-  { value: "exam", label: "Exam Prep" },
-  { value: "detailed", label: "Detailed" },
+  { value: "detailed", label: "Detailed (Gemini)" },
+  { value: "rag", label: "RAG" },
+  { value: "eli5", label: "ELI5 (Gemini)" },
+  { value: "exam", label: "Exam Prep (Gemini)" },
 ];
 
 export default function ChatScreenContainer() {
@@ -65,10 +66,13 @@ export default function ChatScreenContainer() {
         content: m.content,
       }));
 
-      const res = await fetch("http://localhost:5001/chat/chat", {
+      const useRag = selectedMode === "rag";
+
+      const apiBase = import.meta?.env?.VITE_API_URL || "http://localhost:5001";
+      const res = await fetch(`${apiBase}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: currentInput, history }),
+        body: JSON.stringify({ message: currentInput, history, useRag }),
       });
 
       if (!res.ok) throw new Error(`Backend error: ${res.status}`);

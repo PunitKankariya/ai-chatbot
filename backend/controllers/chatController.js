@@ -1,44 +1,27 @@
 // backend/controllers/chatController.js
-import dotenv from "dotenv";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { getAIResponse } from "../services/aiService.js";
 
-dotenv.config();
-
-// Support both env var names
-const API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-const genAI = new GoogleGenerativeAI(API_KEY);
-
-export const chatWithGemini = async (req, res) => {
+export const chatHandler = async (req, res) => {
   try {
-    const { message, history } = req.body;
+    console.log('Received request body:', JSON.stringify(req.body, null, 2));
+    const { message, history = [], useRag = false } = req.body || {};
 
-    if (!message) {
-      return res.status(400).json({ error: "Message is required" });
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ error: "'message' is required (string)" });
     }
 
-    if (!API_KEY) {
-      return res.status(500).json({ error: "Missing API key. Set GEMINI_API_KEY or GOOGLE_API_KEY in .env" });
-    }
+    console.log(`[chatHandler] Using model: ${useRag ? "RAG" : "Gemini"}`);
 
-    // Initialize Gemini model
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-    // Combine conversation history with the new message
-    const safeHistory = Array.isArray(history) ? history : [];
-    const context = safeHistory
-      .map((m) => `${m.role}: ${m.content}`)
-      .join("\n");
-
-    const prompt = `${context}\nUser: ${message}`;
-
-    // Call Gemini API
-    const result = await model.generateContent(prompt);
-    const reply = result?.response?.text?.() || "";
-    res.json({ reply });
+    console.log('Calling getAIResponse with:', { message, historyLength: history.length, useRag });
+    const reply = await getAIResponse(message, history, useRag);
+    console.log('Received reply:', reply);
+    return res.json({ reply, model: useRag ? "RAG" : "Gemini" });
   } catch (err) {
-    console.error("🔥 Gemini API Error:", err?.message || err);
-    res.status(500).json({
-      error: `Gemini API Error: ${err?.message || "Unknown error"}`
+    console.error("[chatHandler] Error:", err);
+    console.error('Error stack:', err.stack);
+    return res.status(500).json({ 
+      error: err?.message || "Internal Server Error",
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
   }
 };

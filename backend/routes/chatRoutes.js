@@ -1,8 +1,9 @@
 import express from "express";
-import { chatWithGemini } from "../controllers/chatController.js";
+import { chatHandler } from "../controllers/chatController.js";
 
 const router = express.Router();
 
-router.post("/chat", chatWithGemini);
+// Mounted at app.use("/chat", router) => effective path: POST /chat
+router.post("/", chatHandler);
 
 export default router;

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useChat } from "../hooks/useChat";
+import ChatBubble from "./ChatBubble";
 
 export default function ChatScreenContainer() {
   const { messages, loading, error, sendMessage } = useChat();
@@ -22,22 +23,12 @@ export default function ChatScreenContainer() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.map((msg, idx) => (
-          <div
+          <ChatBubble
             key={idx}
-            className={`flex ${
-              msg.role === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
-            <div
-              className={`px-4 py-2 rounded-2xl max-w-[70%] text-sm shadow-md ${
-                msg.role === "user"
-                  ? "bg-blue-600 text-white rounded-br-none"
-                  : "bg-gray-200 text-gray-900 rounded-bl-none"
-              }`}
-            >
-              {msg.content}
-            </div>
-          </div>
+            text={msg.content}
+            sender={msg.role === "user" ? "user" : "ai"}
+            time={new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+          />
         ))}
 
         {loading && (
