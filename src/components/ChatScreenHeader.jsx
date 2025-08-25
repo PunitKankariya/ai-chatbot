@@ -1,4 +1,4 @@
-import { User } from "lucide-react";
+import { User, LogIn } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function ChatScreenHeader() {
@@ -14,7 +14,13 @@ export default function ChatScreenHeader() {
       <div className="bg-black/20 backdrop-blur-sm rounded-xl px-4 py-2">
         <h1 className="text-xl font-semibold text-white">StudyMate AI</h1>
       </div>
-      <div className="flex items-center pr-4">
+      <div className="flex items-center gap-3 pr-4">
+        <Link
+          to="/login"
+          className="w-10 h-10 bg-black/20 backdrop-blur-sm hover:bg-black/30 rounded-xl flex items-center justify-center transition-all duration-200"
+        >
+          <LogIn className="w-5 h-5 text-white/80" />
+        </Link>
         <Link
           to="/profile"
           className="w-10 h-10 bg-black/20 backdrop-blur-sm hover:bg-black/30 rounded-xl flex items-center justify-center transition-all duration-200"

@@ -4,13 +4,12 @@ import { ArrowLeft, MessageCircle, BookOpen, Award, Brain } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function StudentProfile() {
-  const studentData = {
+  const defaultStudentData = {
     name: "Sarah Johnson",
     year: "3rd Year",
     department: "Computer Science",
     category: "Topper",
     profileImage: "/placeholder.svg",
-    studyCompletion: 85,
     stats: {
       notesAccessed: 247,
       questionsAsked: 89,
@@ -23,16 +22,69 @@ export default function StudentProfile() {
     ],
   };
 
-  // Category helpers removed since category badge is hidden
-
-  const [profile, setProfile] = useState(studentData);
-  const [draft, setDraft] = useState(studentData);
+  const [profile, setProfile] = useState(defaultStudentData);
+  const [draft, setDraft] = useState(defaultStudentData);
   const [isEditing, setIsEditing] = useState(false);
   const imageInputRef = useRef(null);
 
   // Load saved profile from localStorage on mount
   useEffect(() => {
     try {
+      // First try to get from userProfile (from simplified signup)
+      const userProfile = localStorage.getItem("userProfile");
+      if (userProfile) {
+        const parsed = JSON.parse(userProfile);
+        const adaptedProfile = {
+          name: parsed.fullName || defaultStudentData.name,
+          email: parsed.email,
+          phone: parsed.phone,
+          registrationDate: parsed.registrationDate,
+          profileImage: defaultStudentData.profileImage,
+          year: defaultStudentData.year,
+          department: defaultStudentData.department,
+          stats: defaultStudentData.stats,
+          focusAreas: defaultStudentData.focusAreas,
+          category: defaultStudentData.category
+        };
+        setProfile(adaptedProfile);
+        setDraft(adaptedProfile);
+        return;
+      }
+      
+      // Fallback to studentProfile (legacy)
+      const studentProfile = localStorage.getItem("studentProfile");
+      if (studentProfile) {
+        const parsed = JSON.parse(studentProfile);
+        const adaptedProfile = {
+          name: parsed.fullName || defaultStudentData.name,
+          year: parsed.currentYear || defaultStudentData.year,
+          department: parsed.department || defaultStudentData.department,
+          degree: parsed.degree,
+          branch: parsed.branch,
+          specialization: parsed.specialization,
+          studentId: parsed.studentId,
+          email: parsed.email,
+          phone: parsed.phone,
+          address: parsed.address,
+          dateOfBirth: parsed.dateOfBirth,
+          guardianName: parsed.guardianName,
+          guardianPhone: parsed.guardianPhone,
+          previousYearMarks: parsed.previousYearMarks,
+          twelfthMarks: parsed.twelfthMarks,
+          currentSemester: parsed.currentSemester,
+          progressPrediction: parsed.progressPrediction,
+          registrationDate: parsed.registrationDate,
+          profileImage: parsed.profileImage || defaultStudentData.profileImage,
+          stats: defaultStudentData.stats,
+          focusAreas: defaultStudentData.focusAreas,
+          category: defaultStudentData.category
+        };
+        setProfile(adaptedProfile);
+        setDraft(adaptedProfile);
+        return;
+      }
+      
+      // Fallback to user_profile
       const saved = localStorage.getItem("user_profile");
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -100,12 +152,6 @@ export default function StudentProfile() {
           </Link>
           <h1 className="text-lg font-semibold">Student Profile</h1>
           <div className="flex items-center gap-2">
-            <Link
-              to="/login"
-              className="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm"
-            >
-              Log in
-            </Link>
             {isEditing ? (
               <>
                 <button
@@ -217,36 +263,6 @@ export default function StudentProfile() {
           )}
         </div>
 
-        {/* Study Completion */}
-        <div className="mt-8 px-6">
-          <p className="mb-2 font-medium">Study Completion</p>
-          <div className="w-full bg-gray-700 rounded-full h-3">
-            <div
-              className="h-3 rounded-full bg-purple-500"
-              style={{
-                width: `${
-                  isEditing ? draft.studyCompletion : profile.studyCompletion
-                }%`,
-              }}
-            ></div>
-          </div>
-          <div className="flex items-center justify-between mt-2">
-            <p className="text-sm">
-              {isEditing ? draft.studyCompletion : profile.studyCompletion}%
-            </p>
-            {isEditing && (
-              <input
-                type="range"
-                min="0"
-                max="100"
-                value={draft.studyCompletion}
-                onChange={(e) =>
-                  handleDraftChange("studyCompletion", Number(e.target.value))
-                }
-              />
-            )}
-          </div>
-        </div>
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mt-8 px-6">

@@ -7,6 +7,8 @@ import ProgressPage from "./pages/ProgressPage.jsx";
 import SettingsPage from "./pages/SettingsPage";
 import StudentProfile from "./pages/StudentProfile.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
+import SignupPage from "./pages/SignupPage.jsx";
+import StudentProgressTracker from "./pages/StudentProgressTracker.jsx";
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/profile" element={<StudentProfile />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/progress-tracker" element={<StudentProgressTracker />} />
         </Routes>
       </div>
     </Router>
