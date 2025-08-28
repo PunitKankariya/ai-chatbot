@@ -62,8 +62,12 @@ def initialize_rag():
         docs = loader.load()
         logger.info(f"Loaded {len(docs)} documents from PDF")
         
-        # Split text
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        # Split text with better parameters for retrieval
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=800, 
+            chunk_overlap=100,
+            separators=["\n\n", "\n", ". ", " ", ""]
+        )
         splits = text_splitter.split_documents(docs)
         logger.info(f"Split into {len(splits)} chunks")
         
@@ -77,8 +81,11 @@ def initialize_rag():
         # Index the split chunks (not the whole documents)
         vector_store = PineconeVectorStore.from_documents(splits, embeddings, index_name=index_name)
         
-        # Retriever (top-k similar chunks)
-        retriever = vector_store.as_retriever(search_kwargs={"k": 7})
+        # Retriever with better search parameters
+        retriever = vector_store.as_retriever(
+            search_type="similarity",
+            search_kwargs={"k": 5}
+        )
 
         # Utility to turn retrieved docs into a single context string
         def format_docs(docs):
@@ -86,10 +93,15 @@ def initialize_rag():
         
         # Prompt
         template = """
-        You are a helpful assistant. Use ONLY the provided Context to answer the Question.
-        If the answer is not explicitly present in the Context, reply exactly with: I don't know.
-        Be concise and cite facts from the Context.
-
+        You are a helpful assistant. Use the provided Context to answer the Question as accurately as possible.
+        
+        Instructions:
+        - Answer based on the information in the Context
+        - If you can infer or derive an answer from the Context, provide it
+        - Be comprehensive and detailed in your response
+        - If the Context contains related information, use it to provide the best possible answer
+        - Only say "I don't know" if the Context is completely unrelated to the question
+        
         Context:
         {context}
 
@@ -100,8 +112,8 @@ def initialize_rag():
         """
         prompt = ChatPromptTemplate.from_template(template)
         
-        # LLM
-        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0)
+        # LLM with slightly higher temperature for better responses
+        llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.3)
         
         # RAG Chain
         rag_chain = (

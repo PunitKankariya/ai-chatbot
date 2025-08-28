@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // Support both env var names
-const RAG_API_URL = process.env.RAG_API_URL || "http://127.0.0.1:8000/generate";
+const RAG_API_URL = process.env.RAG_API_URL || "http://127.0.0.1:8000/ask";
 let model = null;
 
 /**
@@ -45,7 +45,14 @@ export async function getAIResponse(message, history = [], useRag = false) {
         const response = await axios.post(RAG_API_URL, {
           question: message,
         });
-        const ragResponse = response.data?.response || response.data?.answer || response.data;
+        console.log('[aiService] RAG API response:', response.data);
+        const ragResponse = response.data?.answer || response.data?.response || response.data;
+        console.log('[aiService] Extracted RAG response:', ragResponse);
+        
+        if (!ragResponse || typeof ragResponse !== 'string') {
+          throw new Error('Invalid RAG response format');
+        }
+        
         return formatBulletPoints(ragResponse);
       } catch (ragError) {
         if (ragError.code === 'ECONNREFUSED') {
@@ -53,8 +60,8 @@ export async function getAIResponse(message, history = [], useRag = false) {
         } else {
           console.error('[aiService] Error calling RAG API:', ragError.message);
         }
-        // Fallback instead of throwing to avoid 500s
-        return formatBulletPoints(`You said: ${message}`);
+        // Better error handling - return a proper error message instead of echo
+        return "I'm sorry, I'm having trouble connecting to the RAG system. Please try again or switch to Gemini mode.";
       }
     }
 
